@@ -12,29 +12,24 @@ import com.sukinsan.anDB.anDB.annotations.*;
 @Table(name="user")
 public class User extends BaseTable{
 
-    @Column(name="id",type="integer", AUTOINCREMENT = true, PRIMARY_KEY = true)
-	private int id;
-
-	@Column(name="name", type="text")
+	@Column(name="name", type="TEXT")
     private String name;
 
-	@Column(name="email", type="text")
+	@Column(name="email", type="CHAR(254)")
 	private String email;
 
-	@Column(name="password", type="text")
+	@Column(name="password", type="CHAR(20)")
 	private String password;
+
+	@Column(name="field_int", type="INT")
+	private int fieldInt;
+
+	@Column(name="field_real", type="REAL")
+	private int fieldReal;
 
 	public User() {
 		super();
 		Log.i("user","created");
-	}
-
-	public int getId() {
-		return id;
-	}
-
-	public void setId(int id) {
-		this.id = id;
 	}
 
 	public String getName() {
@@ -61,6 +56,22 @@ public class User extends BaseTable{
 		this.password = password;
 	}
 
+	public int getFieldInt() {
+		return fieldInt;
+	}
+
+	public void setFieldInt(int fieldInt) {
+		this.fieldInt = fieldInt;
+	}
+
+	public int getFieldReal() {
+		return fieldReal;
+	}
+
+	public void setFieldReal(int fieldReal) {
+		this.fieldReal = fieldReal;
+	}
+
 	@Override
 	public String toString() {
 		return "User{" +
@@ -68,6 +79,9 @@ public class User extends BaseTable{
 				", name='" + name + '\'' +
 				", email='" + email + '\'' +
 				", password='" + password + '\'' +
+				", fieldInt=" + fieldInt +
+				", fieldReal=" + fieldReal +
 				'}';
 	}
+
 }

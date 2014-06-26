@@ -13,7 +13,7 @@ import android.view.ViewGroup;
 
 import java.util.List;
 
-import com.sukinsan.anDB.DBHandler;
+import com.sukinsan.anDB.anDB.DBHandler;
 import com.sukinsan.anDB.entity.User;
 
 
@@ -32,12 +32,14 @@ public class Main extends Activity {
         user.setEmail("vasiliy@gmail.com");
         user.setName("Vasia");
         user.setPassword("qwerty");
+		user.setFieldInt(12);
+		user.setFieldReal(13);
 
 		DBHandler dbHandler = new DBHandler(getApplicationContext());
 		SQLiteDatabase sqLite = dbHandler.getWritableDatabase();
 
 		dbHandler.dropTable(user);
-		dbHandler.createTable(user);
+		dbHandler.createTable(User.class);
 
 		dbHandler.insertInto(user);
 		dbHandler.insertInto(user);
@@ -46,6 +48,13 @@ public class Main extends Activity {
 
 		List<User> users = dbHandler.readAllFrom(User.class);
 		Log.i("ALL USERS","users:"+users);
+
+		dbHandler.deleteRecord(users.get(1));
+
+		List<User> nextUsers = dbHandler.readAllFrom(User.class);
+		Log.i("ALL USERS","users after we deleted on:"+nextUsers);
+
+		dbHandler.deleteRecord(users.get(1));
 
 		dbHandler.dropTable(user);
     }

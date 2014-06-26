@@ -12,8 +12,9 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Column {
 	String name();
-	String type();
-	boolean PRIMARY_KEY() default false;
-	boolean AUTOINCREMENT() default false;
+	String type(); // TEXT,INTEGER,REAL,BLOB,INT,CHAR(50)
+	boolean PRIMARY_KEY() default false; //true,false
+	boolean AUTOINCREMENT() default false; //true,false
+	boolean NOT_NULL() default false; //true,false
 
 }
