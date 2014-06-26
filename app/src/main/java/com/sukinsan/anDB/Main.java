@@ -29,14 +29,13 @@ public class Main extends Activity {
         }
 
 		User user = new User();
-        user.setEmail("vasiliy@gmail.com");
-        user.setName("Vasia");
+        user.setEmail("jhon@gmail.com");
+        user.setName("Konnor");
         user.setPassword("qwerty");
 		user.setFieldInt(12);
 		user.setFieldReal(13);
 
 		DBHandler dbHandler = new DBHandler(getApplicationContext());
-		SQLiteDatabase sqLite = dbHandler.getWritableDatabase();
 
 		dbHandler.dropTable(user);
 		dbHandler.createTable(User.class);
