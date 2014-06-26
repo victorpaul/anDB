@@ -1,3 +1,5 @@
+.h1 KEEP in mind, it's still in developing, it doesn't work well yet!
+
 Hello fellas, **anDB** is a tool for working with sqlite from android devices
 The idea is to use magic annotations to make your life as easy as possible
 
