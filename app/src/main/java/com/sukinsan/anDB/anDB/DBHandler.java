@@ -11,10 +11,8 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.sukinsan.anDB.anDB.BaseTable;
 import com.sukinsan.anDB.anDB.annotations.Column;
 import com.sukinsan.anDB.anDB.annotations.Table;
-import com.sukinsan.anDB.entity.User;
 
 /**
  * Created by victorPaul on 6/19/14.
@@ -91,36 +89,14 @@ public class DBHandler extends SQLiteOpenHelper {
 		return extractAnnotatedFields(userTable.getClass());
 	}
 
-
+	/**
+	 * will try to create/update a table in DB
+	 */
 	public <T> void createTable(Class<T> userTable){
 		Table tableInfo = extractTableInfo(userTable);
-
-		if(tableInfo != null){
-			boolean appendCommaNextTime = false;
-			StringBuilder queryCreateTable = new StringBuilder("CREATE TABLE "+tableInfo.name()+"(");
-
+		if(tableInfo != null) {
 			List<Field> fields = extractAnnotatedFields(userTable);
-			for(Field field : fields){
-				if(appendCommaNextTime){
-					queryCreateTable.append(",");
-				}
-				Column coluumn = field.getAnnotation(Column.class);
-				queryCreateTable.append(coluumn.name()+" "+coluumn.type());
-				if(coluumn.PRIMARY_KEY()){
-					queryCreateTable.append(" PRIMARY KEY");
-				}
-				if(coluumn.AUTOINCREMENT()){
-					queryCreateTable.append(" AUTOINCREMENT");
-				}
-
-				appendCommaNextTime = true;
-			}
-
-			queryCreateTable.append(");");//close query
-
-			log(queryCreateTable.toString());
-
-			sqLite.execSQL(queryCreateTable.toString());
+			new TableCreator(tableInfo,fields,sqLite);
 		}
 	}
 
@@ -173,51 +149,62 @@ public class DBHandler extends SQLiteOpenHelper {
 		return 0;
 	}
 
-	public <T> List<T> readFromQuery(String query,Class<T> userTable){
-		ArrayList<T> entities = new ArrayList<T>();
-		Cursor cursor = sqLite.rawQuery(query, null);
-		if (cursor.moveToFirst()) {
-			List<Field> fields = extractAnnotatedFields(userTable);
-			do {
-				try{
-					T entity = userTable.newInstance();
-					for(Field field:fields){
-						field.setAccessible(true);
-						Column column = field.getAnnotation(Column.class);
+	public Cursor executeQuery(String query){
+		return sqLite.rawQuery(query, null);
+	}
 
-						// get int
-						if(field.getType().isAssignableFrom(Integer.TYPE)) {
-							field.set(entity,cursor.getInt(cursor.getColumnIndex(column.name())));
-							continue;
+	public <T> List<T> readFromQuery(String query, final Class<T> userTable){
+		final List<Field> fields = extractAnnotatedFields(userTable);
+		final ArrayList<T> entities = new ArrayList<T>();
+
+		try {
+			QueryResultReader queryLooper = new QueryResultReader(query, sqLite) {
+				@Override
+				public void loopThrougResults(Cursor cursor) {
+					try{
+
+						T entity = userTable.newInstance();
+						for(Field field:fields){
+							field.setAccessible(true);
+							Column column = field.getAnnotation(Column.class);
+
+							// get int
+							if(field.getType().isAssignableFrom(Integer.TYPE)) {
+								field.set(entity,cursor.getInt(cursor.getColumnIndex(column.name())));
+								continue;
+							}
+
+							// get String
+							if(field.getType().isAssignableFrom(String.class)) {
+								field.set(entity,cursor.getString(cursor.getColumnIndex(column.name())));
+								continue;
+							}
+
+							// get Double
+							if(field.getType().isAssignableFrom(Double.class)) {
+								field.set(entity,cursor.getDouble(cursor.getColumnIndex(column.name())));
+								continue;
+							}
+
+							// get Float
+							if(field.getType().isAssignableFrom(Float.class)) {
+								field.set(entity,cursor.getFloat(cursor.getColumnIndex(column.name())));
+								continue;
+							}
+
+							logError("can't get column '"+ column.name() +"' for field '"+field.getName()+"' with field type '"+field.getType()+"'");
 						}
+						entities.add(entity);
 
-						// get String
-						if(field.getType().isAssignableFrom(String.class)) {
-							field.set(entity,cursor.getString(cursor.getColumnIndex(column.name())));
-							continue;
-						}
-
-						// get Double
-						if(field.getType().isAssignableFrom(Double.class)) {
-							field.set(entity,cursor.getDouble(cursor.getColumnIndex(column.name())));
-							continue;
-						}
-
-						// get Float
-						if(field.getType().isAssignableFrom(Float.class)) {
-							field.set(entity,cursor.getFloat(cursor.getColumnIndex(column.name())));
-							continue;
-						}
-
-						logError("can't get column '"+ column.name() +"' for field '"+field.getName()+"' with field type '"+field.getType()+"'");
+					}catch(Exception e){
+						logError(e.getMessage());
 					}
-					entities.add(entity);
-				}catch (Exception e){
-					logError(e.getMessage());
+
 				}
-			} while (cursor.moveToNext());
+			};
+		}catch(Exception e){
+			logError(e.getMessage());
 		}
-		cursor.close();
 
 		return entities;
 	}
@@ -231,7 +218,8 @@ public class DBHandler extends SQLiteOpenHelper {
 			return null;
 		}
 
-		return readFromQuery("SELECT * FROM "+tableInfo.name(),userTable);
+		return readFromQuery("SELECT * FROM " + tableInfo.name(), userTable);
+
 	}
 
 	/**

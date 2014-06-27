@@ -38,6 +38,7 @@ public class Main extends Activity {
 		DBHandler dbHandler = new DBHandler(getApplicationContext());
 
 		dbHandler.dropTable(user);
+
 		dbHandler.createTable(User.class);
 
 		dbHandler.insertInto(user);
