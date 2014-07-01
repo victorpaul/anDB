@@ -1,4 +1,4 @@
-package com.sukinsan.anDB.anDB;
+package com.sukinsan.anDB.anDB.abstracts;
 
 import com.sukinsan.anDB.anDB.annotations.Column;
 
@@ -6,7 +6,7 @@ import com.sukinsan.anDB.anDB.annotations.Column;
 /**
  * Created by victorPAul on 6/25/14.
  */
-public class BaseTable{
+public abstract class BaseTable{
 
 	@Column(name="id",type="INTEGER", AUTOINCREMENT = true, PRIMARY_KEY = true)
 	protected int id; // shouldn't be changed!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -19,8 +19,5 @@ public class BaseTable{
 		this.id = id;
 	}
 
-
-	public void beforeDelete(BaseTable baseTable){
-
-	}
+	abstract public void beforeDelete(BaseTable baseTable);
 }

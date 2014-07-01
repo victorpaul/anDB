@@ -37,10 +37,11 @@ public class Main extends Activity {
 
 		DBHandler dbHandler = new DBHandler(getApplicationContext());
 
-		dbHandler.dropTable(user);
+		//dbHandler.dropTable(user);
 
 		dbHandler.createTable(User.class);
 
+		/*
 		dbHandler.insertInto(user);
 		dbHandler.insertInto(user);
 		dbHandler.insertInto(user);
@@ -57,6 +58,7 @@ public class Main extends Activity {
 		dbHandler.deleteRecord(users.get(1));
 
 		dbHandler.dropTable(user);
+		//*/
     }
 
     @Override

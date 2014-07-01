@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by viktor_2 on 6/27/14.
+ * Created by victorPaul on 6/27/14.
  */
 public class TableCreator {
 
@@ -28,25 +28,27 @@ public class TableCreator {
 		this.sqLite = sqLite;
 		this.schemaColumns = getSchemaColumns();
 
-		createTable();
-		updateTable();
+
+		if(this.schemaColumns.size() == 0){
+			createTable();
+		}else{
+			updateTable();
+		}
+
 	}
 
 	private List<SchemaColumn> getSchemaColumns(){
 		final List<SchemaColumn> schemaColumns_ = new ArrayList<SchemaColumn>();
 		try {
-			Log.i("E","row");
 			new QueryResultReader("PRAGMA table_info("+tableInfo.name()+");",sqLite) {
 				@Override
-				public void loopThrougResults(Cursor cursor) {
+				public void loopThroughResults(Cursor cursor) {
 					SchemaColumn schemaColumn = new SchemaColumn();
-					Log.i("E","row");
+					schemaColumn.setPrimaryKey(cursor.getInt(cursor.getColumnIndex("pk"))==1);
 					schemaColumn.setName(cursor.getString(cursor.getColumnIndex("name")));
 					schemaColumn.setType(cursor.getString(cursor.getColumnIndex("type")));
-					schemaColumn.setDfltValue(cursor.getString(cursor.getColumnIndex("")));
+					schemaColumn.setDfltValue(cursor.getString(cursor.getColumnIndex("dflt_value")));
 					schemaColumn.setNotNull(cursor.getInt(cursor.getColumnIndex("notnull"))==1);
-					schemaColumn.setPrimaryKey(cursor.getInt(cursor.getColumnIndex("pk"))==1);
-
 					schemaColumns_.add(schemaColumn);
 				}
 			};

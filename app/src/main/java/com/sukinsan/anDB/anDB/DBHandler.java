@@ -11,6 +11,7 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.sukinsan.anDB.anDB.abstracts.BaseTable;
 import com.sukinsan.anDB.anDB.annotations.Column;
 import com.sukinsan.anDB.anDB.annotations.Table;
 
@@ -158,11 +159,10 @@ public class DBHandler extends SQLiteOpenHelper {
 		final ArrayList<T> entities = new ArrayList<T>();
 
 		try {
-			QueryResultReader queryLooper = new QueryResultReader(query, sqLite) {
+			new QueryResultReader(query, sqLite) {
 				@Override
-				public void loopThrougResults(Cursor cursor) {
+				public void loopThroughResults(Cursor cursor) {
 					try{
-
 						T entity = userTable.newInstance();
 						for(Field field:fields){
 							field.setAccessible(true);
@@ -235,6 +235,7 @@ public class DBHandler extends SQLiteOpenHelper {
 	public boolean deleteRecord(BaseTable userTable){
 		Table tableInfo = extractTableInfo(userTable.getClass());
 		if(tableInfo != null) {
+			userTable.beforeDelete(userTable);
 			int deleteCode = sqLite.delete(tableInfo.name(),"id = ?",new String[]{String.valueOf(userTable.getId())});
 			log("Delete code = "+deleteCode);
 			return (deleteCode==1);

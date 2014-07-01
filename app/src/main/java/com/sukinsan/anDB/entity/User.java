@@ -2,7 +2,7 @@ package com.sukinsan.anDB.entity;
 
 import android.util.Log;
 
-import com.sukinsan.anDB.anDB.BaseTable;
+import com.sukinsan.anDB.anDB.abstracts.BaseTable;
 import com.sukinsan.anDB.anDB.annotations.*;
 
 /**
@@ -84,4 +84,8 @@ public class User extends BaseTable{
 				'}';
 	}
 
+	@Override
+	public void beforeDelete(BaseTable baseTable) {
+
+	}
 }
