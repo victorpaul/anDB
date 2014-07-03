@@ -13,5 +13,6 @@ import java.lang.annotation.Target;
 public @interface Index {
 	String name();
 	String column();
+	boolean unique() default false;
 	String sortBy() default "ASC";
 }

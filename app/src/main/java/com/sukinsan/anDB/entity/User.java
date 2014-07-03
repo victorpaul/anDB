@@ -11,7 +11,7 @@ import java.lang.reflect.Field;
  * Created by victorPaul on 6/19/14.
  */
 
-@Table(name="user",indexes = {@Index(name="index_name",column = "name")})
+@Table(name="user",indexes = {@Index(name="index_id",column = "id",sortBy = "DESC"),@Index(name="index_text1",column = "text1",unique = false)})
 public class User extends BaseTable{
 
 	@Column(name="name", type="TEXT")

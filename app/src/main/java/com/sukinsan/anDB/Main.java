@@ -32,24 +32,24 @@ public class Main extends Activity {
 
 		DBHandler dbHandler = new DBHandler(getApplicationContext());
 
-		//dbHandler.dropTable(user);
+		dbHandler.drop(user);
 
-		dbHandler.createTable(User.class);
+		dbHandler.create(User.class);
 
-		dbHandler.insertInto(user);
-		dbHandler.insertInto(user);
-		dbHandler.insertInto(user);
-		dbHandler.insertInto(user);
+		dbHandler.insert(user);
+		dbHandler.insert(user);
+		dbHandler.insert(user);
+		dbHandler.insert(user);
 
-		List<User> users = dbHandler.readAllFrom(User.class);
+		List<User> users = dbHandler.select("SELECT * FROM user",User.class);
 		Log.i("ALL USERS","users:"+users);
 
-		dbHandler.deleteRecord(users.get(1));
+		dbHandler.delete(users.get(1));
 
-		List<User> nextUsers = dbHandler.readAllFrom(User.class);
+		List<User> nextUsers = dbHandler.select("SELECT * FROM user",User.class);
 		Log.i("ALL USERS","users after we deleted on:"+nextUsers);
 
-		dbHandler.deleteRecord(users.get(1));
+		dbHandler.delete(users.get(1));
 
 		//dbHandler.dropTable(user);
 		//*/

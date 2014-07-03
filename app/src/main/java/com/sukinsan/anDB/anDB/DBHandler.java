@@ -19,12 +19,17 @@ import com.sukinsan.anDB.anDB.annotations.Table;
  * Created by victorPaul on 6/19/14.
  */
 public class DBHandler extends SQLiteOpenHelper {
-	private final static String DB_NAME = "qw";
+
+	public final static String TABLE_ID = "id";
+	private final static String DB_NAME = "anDB";
 	private SQLiteDatabase sqLite;
+	private QueryManager qm;
 
 	public DBHandler(Context context) {
 		super(context, DB_NAME, null, 1);
 		sqLite = getWritableDatabase();
+		qm = new QueryManager(sqLite);
+
 	}
 
 	private void logError(String errorMsg){
@@ -93,7 +98,7 @@ public class DBHandler extends SQLiteOpenHelper {
 	/**
 	 * will try to create/update a table in DB
 	 */
-	public <T> void createTable(Class<T> userTable){
+	public <T> void create(Class<T> userTable){
 		Table tableInfo = extractTableInfo(userTable);
 		if(tableInfo != null) {
 			List<Field> fields = extractAnnotatedFields(userTable);
@@ -102,9 +107,9 @@ public class DBHandler extends SQLiteOpenHelper {
 	}
 
 	/**
-	 * Insert into DB
+	 * insert or replace
 	 */
-	public long insertInto(BaseTable baseTable){
+	public long insert(BaseTable baseTable){
 		Table tabelInfo = extractTableInfo(baseTable);
 		if(tabelInfo != null){
 			ContentValues values = new ContentValues();
@@ -150,11 +155,10 @@ public class DBHandler extends SQLiteOpenHelper {
 		return 0;
 	}
 
-	public Cursor executeQuery(String query){
-		return sqLite.rawQuery(query, null);
-	}
-
-	public <T> List<T> readFromQuery(String query, final Class<T> userTable){
+	/**
+	 * Select from query
+	 */
+	public <T> List<T> select(String query, final Class<T> userTable){
 		final List<Field> fields = extractAnnotatedFields(userTable);
 		final ArrayList<T> entities = new ArrayList<T>();
 
@@ -210,35 +214,25 @@ public class DBHandler extends SQLiteOpenHelper {
 	}
 
 	/**
-	 * returns all records in the table
+	 * Delete
 	 */
-	public <T> List<T> readAllFrom(Class <T> userTable){
-		Table tableInfo = extractTableInfo(userTable);
-		if(tableInfo == null){
-			return null;
+	public boolean delete(BaseTable userTable){
+		Table tableInfo = extractTableInfo(userTable.getClass());
+		if(tableInfo != null) {
+			userTable.beforeDelete(userTable);
+			int deleteCode = sqLite.delete(tableInfo.name(),TABLE_ID+" = ?",new String[]{String.valueOf(userTable.getId())});
+			return (deleteCode==1);
 		}
-
-		return readFromQuery("SELECT * FROM " + tableInfo.name(), userTable);
-
+		return false;
 	}
 
 	/**
 	 * DROP TABLE
 	 */
-	public void dropTable(BaseTable userTable){
+	public boolean drop(BaseTable userTable){
 		Table tableInfo = extractTableInfo(userTable);
 		if(tableInfo != null){
-			sqLite.execSQL("DROP TABLE IF EXISTS "+tableInfo.name()+";");
-		}
-	}
-
-	public boolean deleteRecord(BaseTable userTable){
-		Table tableInfo = extractTableInfo(userTable.getClass());
-		if(tableInfo != null) {
-			userTable.beforeDelete(userTable);
-			int deleteCode = sqLite.delete(tableInfo.name(),"id = ?",new String[]{String.valueOf(userTable.getId())});
-			log("Delete code = "+deleteCode);
-			return (deleteCode==1);
+			return qm.executeQuery("DROP TABLE IF EXISTS "+tableInfo.name()+";");
 		}
 		return false;
 	}

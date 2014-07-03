@@ -8,6 +8,7 @@ import com.sukinsan.anDB.anDB.annotations.Column;
 import com.sukinsan.anDB.anDB.annotations.Index;
 import com.sukinsan.anDB.anDB.annotations.Table;
 import com.sukinsan.anDB.anDB.schema.SchemaColumn;
+import com.sukinsan.anDB.anDB.schema.SchemaIndex;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -24,13 +25,18 @@ public class TableManager {
 	Table tableInfo;
 	List<Field> fields;
 	SQLiteDatabase sqLite;
+	QueryManager qm;
 	List<SchemaColumn> schemaColumns;
+	List<SchemaIndex> schemaindexes;
 
 	public TableManager(Table tableInfo, List<Field> fields,SQLiteDatabase sqLite){
+
+		qm = new QueryManager(sqLite);
 		this.tableInfo = tableInfo;
 		this.fields = fields;
 		this.sqLite = sqLite;
 		this.schemaColumns = getSchemaColumns();
+		this.schemaindexes = getSchemaIndexes();
 
 		if(this.schemaColumns.size() == 0){
 			createTable();
@@ -38,6 +44,22 @@ public class TableManager {
 			updateTable();
 		}
 
+	}
+
+	private List<SchemaIndex> getSchemaIndexes(){
+		final List<SchemaIndex> schemaIndexes_ = new ArrayList<SchemaIndex>();
+		try {
+			new QueryResultReader("SHOW INDEX FROM `"+tableInfo.name()+"`;",sqLite) {
+				@Override
+				public void loopThroughResults(Cursor cursor) {
+					SchemaIndex schemaIndex = new SchemaIndex();
+					schemaIndexes_.add(schemaIndex);
+				}
+			};
+		}catch(Exception e){
+			Log.e(TAG, e.getMessage());
+		}
+		return schemaIndexes_;
 	}
 
 	private List<SchemaColumn> getSchemaColumns(){
@@ -69,19 +91,15 @@ public class TableManager {
 			String columnsForMigration = getColumnsForMigration();
 
 			String tempTableName = "temporaryTableName"+tableInfo.name();
-			execute("ALTER TABLE " + tableInfo.name() + " RENAME TO " + tempTableName + ";");
+
+			qm.executeQuery("ALTER TABLE `" + tableInfo.name() + "` RENAME TO `" + tempTableName + "`;");
 			createTable();
-			execute("INSERT INTO " + tableInfo.name() + " (" + columnsForMigration + ") SELECT " + columnsForMigration + " FROM " + tempTableName + ";");
-			execute("DROP TABLE " + tempTableName + ";");
+			qm.executeQuery("INSERT INTO `" + tableInfo.name() + "` (" + columnsForMigration + ") SELECT " + columnsForMigration + " FROM `" + tempTableName + "`;");
+			qm.executeQuery("DROP TABLE `" + tempTableName + "`;");
 
 		}else{
 			Log.i(TAG,"Table '" + tableInfo.name() + "' no needs to be updated");
 		}
-	}
-
-	private void execute(String query){
-		Log.i(TAG,"Execute query: "+query);
-		sqLite.execSQL(query);
 	}
 
 	private boolean isSchemaUpToDate(){
@@ -147,36 +165,34 @@ public class TableManager {
 		return builder.toString();
 	}
 
-
 	/**
 	 * create a table
 	 */
-	private void createTable(){
-		boolean appendCommaNextTime = false;
+	private boolean createTable(){
 		StringBuilder queryCreateTable = new StringBuilder("CREATE TABLE "+tableInfo.name()+"(");
 
 		for(Field field : fields){
-			if(appendCommaNextTime){
-				queryCreateTable.append(",");
-			}
-			Column coluumn = field.getAnnotation(Column.class);
-			queryCreateTable.append(coluumn.name()+" "+coluumn.type());
-			if(coluumn.PRIMARY_KEY()){
-				queryCreateTable.append(" PRIMARY KEY");
-			}
-			if(coluumn.AUTOINCREMENT()){
-				queryCreateTable.append(" AUTOINCREMENT");
-			}
-			appendCommaNextTime = true;
+			Column column = field.getAnnotation(Column.class);
+			queryCreateTable.append(column.name()+" "+column.type());
+
+			if(column.PRIMARY_KEY()){queryCreateTable.append(" PRIMARY KEY ON CONFLICT REPLACE");}
+			if(column.AUTOINCREMENT()){queryCreateTable.append(" AUTOINCREMENT");}
+
+			queryCreateTable.append(",");
 		}
-		queryCreateTable.append(");");//close query
+		queryCreateTable.deleteCharAt(queryCreateTable.length()-1);// remove last comma
+		queryCreateTable.append(");");
 
-		execute(queryCreateTable.toString());
+		if(!qm.executeQuery(queryCreateTable.toString())){
+			return false;
+		}
 
-		/*
 		for(Index index:tableInfo.indexes()){
-			execute("CREATE UNIQUE INDEX " + index.name() + " ON " + tableInfo.name() + " ( " + index.column() + " ASC);");
-		}//*/
+			if(!qm.executeQuery("CREATE " + (index.unique() ? "UNIQUE" : "") + " INDEX `" + index.name() + "` ON `" + tableInfo.name() + "` ( " + index.column() + " " + index.sortBy() + ");")){
+				return false;
+			}
+		}
 
+		return true;
 	}
 }

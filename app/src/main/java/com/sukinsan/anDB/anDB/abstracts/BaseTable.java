@@ -1,5 +1,6 @@
 package com.sukinsan.anDB.anDB.abstracts;
 
+import com.sukinsan.anDB.anDB.DBHandler;
 import com.sukinsan.anDB.anDB.annotations.Column;
 import com.sukinsan.anDB.anDB.annotations.Index;
 
@@ -7,11 +8,10 @@ import com.sukinsan.anDB.anDB.annotations.Index;
 /**
  * Created by victorPAul on 6/25/14.
  */
-@Index(name="index_id",column = "id")
 public abstract class BaseTable{
 
-	@Column(name="id",type="INTEGER", AUTOINCREMENT = true, PRIMARY_KEY = true)
-	protected int id; // shouldn't be changed!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	@Column(name= DBHandler.TABLE_ID,type="INTEGER", AUTOINCREMENT = true, PRIMARY_KEY = true)
+	protected int id;
 
 	public int getId() {
 		return id;
