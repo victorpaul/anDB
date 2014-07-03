@@ -1,11 +1,13 @@
 package com.sukinsan.anDB.anDB.abstracts;
 
 import com.sukinsan.anDB.anDB.annotations.Column;
+import com.sukinsan.anDB.anDB.annotations.Index;
 
 
 /**
  * Created by victorPAul on 6/25/14.
  */
+@Index(name="index_id",column = "id")
 public abstract class BaseTable{
 
 	@Column(name="id",type="INTEGER", AUTOINCREMENT = true, PRIMARY_KEY = true)

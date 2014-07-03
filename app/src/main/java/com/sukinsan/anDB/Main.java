@@ -29,11 +29,6 @@ public class Main extends Activity {
         }
 
 		User user = new User();
-        user.setEmail("jhon@gmail.com");
-        user.setName("Konnor");
-        user.setPassword("qwerty");
-		user.setFieldInt(12);
-		user.setFieldReal(13);
 
 		DBHandler dbHandler = new DBHandler(getApplicationContext());
 
@@ -41,7 +36,6 @@ public class Main extends Activity {
 
 		dbHandler.createTable(User.class);
 
-		/*
 		dbHandler.insertInto(user);
 		dbHandler.insertInto(user);
 		dbHandler.insertInto(user);
@@ -57,7 +51,7 @@ public class Main extends Activity {
 
 		dbHandler.deleteRecord(users.get(1));
 
-		dbHandler.dropTable(user);
+		//dbHandler.dropTable(user);
 		//*/
     }
 

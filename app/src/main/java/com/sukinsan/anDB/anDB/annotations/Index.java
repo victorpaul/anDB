@@ -4,15 +4,14 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
- * Created by viktor_2 on 6/24/14.
+ * Created by victorPaul on 7/2/14.
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface Table {
+public @interface Index {
 	String name();
-	Index[] indexes();
+	String column();
+	String sortBy() default "ASC";
 }

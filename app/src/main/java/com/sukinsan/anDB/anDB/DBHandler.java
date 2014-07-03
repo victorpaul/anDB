@@ -97,7 +97,7 @@ public class DBHandler extends SQLiteOpenHelper {
 		Table tableInfo = extractTableInfo(userTable);
 		if(tableInfo != null) {
 			List<Field> fields = extractAnnotatedFields(userTable);
-			new TableCreator(tableInfo,fields,sqLite);
+			new TableManager(tableInfo,fields,sqLite);
 		}
 	}
 
