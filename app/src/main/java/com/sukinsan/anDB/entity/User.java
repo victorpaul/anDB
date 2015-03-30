@@ -11,23 +11,23 @@ import java.lang.reflect.Field;
  * Created by victorPaul on 6/19/14.
  */
 
-@Table(name="user",indexes = {@Index(name="index_id",column = "id",sortBy = "DESC"),@Index(name="index_text1",column = "text1",unique = false)})
+@Table(name="user")
 public class User extends BaseTable{
 
 	@Column(name="name", type="TEXT")
-    private String name;
+    public String name;
 
-	@Column(name="text1", type="TEXT")
-	private String email;
+	@Column(name="text1", type="TEXT", index=@Index(name="index_text1",unique = false))
+    public String email;
 
 	@Column(name="text2", type="TEXT")
-	private String password;
+    public String password;
 
 	@Column(name="integer", type="INT")
-	private int fieldInt;
+    public int fieldInt;
 
 	@Column(name="real", type="REAL")
-	private int fieldReal2;
+    public int fieldReal2;
 
 	public User() {
 		super();

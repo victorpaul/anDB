@@ -8,7 +8,7 @@ import android.util.Log;
  * Created by victorPaul on 6/27/14.
  */
 public abstract class QueryResultReader {
-	private final static String TAG = "QueryResultReader";
+	private final static String TAG = QueryResultReader.class.getSimpleName();
 
 	public QueryResultReader(String query,SQLiteDatabase sqLite) throws Exception{
 		Log.i(TAG,query);

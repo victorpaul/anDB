@@ -19,9 +19,10 @@ import com.sukinsan.anDB.anDB.annotations.Table;
  * Created by victorPaul on 6/19/14.
  */
 public class DBHandler extends SQLiteOpenHelper {
+    private final static String TAG = DBHandler.class.getSimpleName();
 
 	public final static String TABLE_ID = "id";
-	private final static String DB_NAME = "anDB";
+	private final static String DB_NAME = "ssAnDB";
 	private SQLiteDatabase sqLite;
 	private QueryManager qm;
 
@@ -30,10 +31,6 @@ public class DBHandler extends SQLiteOpenHelper {
 		sqLite = getWritableDatabase();
 		qm = new QueryManager(sqLite);
 
-	}
-
-	private void logError(String errorMsg){
-		Log.e("ERROR",errorMsg);
 	}
 
 	private void log(String errorMsg){
@@ -57,7 +54,7 @@ public class DBHandler extends SQLiteOpenHelper {
 		if(userTable.isAnnotationPresent(Table.class)){
 			return userTable.getAnnotation(Table.class);
 		}
-		Log.e("ERROR","Class '"+userTable.getSimpleName()+ "' do not contain Table annotation");
+		Log.e(TAG,"Class '"+userTable.getSimpleName()+ "' do not contain Table annotation");
 		return null;
 	}
 
@@ -100,7 +97,7 @@ public class DBHandler extends SQLiteOpenHelper {
 	 */
 	public <T> void create(Class<T> userTable){
 		Table tableInfo = extractTableInfo(userTable);
-		if(tableInfo != null) {
+		if(tableInfo != null){
 			List<Field> fields = extractAnnotatedFields(userTable);
 			new TableManager(tableInfo,fields,sqLite);
 		}
@@ -111,48 +108,50 @@ public class DBHandler extends SQLiteOpenHelper {
 	 */
 	public long insert(BaseTable baseTable){
 		Table tabelInfo = extractTableInfo(baseTable);
-		if(tabelInfo != null){
-			ContentValues values = new ContentValues();
-			try {
-				for (Field field : extractAnnotatedFields(baseTable.getClass())){
-					field.setAccessible(true);
-					Column column = field.getAnnotation(Column.class);
+		if(tabelInfo == null){
+            return 0;
+        }
 
-					// set int
-					if(field.getType().isAssignableFrom(Integer.TYPE)) {
-						if(!column.AUTOINCREMENT()) {
-							values.put(column.name(), field.getInt(baseTable));
-						}
-						continue;
-					}
+        ContentValues values = new ContentValues();
+        try {
+            for (Field field : extractAnnotatedFields(baseTable.getClass())){
+                field.setAccessible(true);
+                Column column = field.getAnnotation(Column.class);
 
-					// set String
-					if(field.getType().isAssignableFrom(String.class)) {
-						values.put(column.name(),(String)field.get(baseTable));
-						continue;
-					}
+                // set int
+                if(field.getType().isAssignableFrom(Integer.TYPE)) {
+                    if(!column.AUTOINCREMENT()) {
+                        values.put(column.name(), field.getInt(baseTable));
+                    }
+                    continue;
+                }
 
-					// set Double
-					if(field.getType().isAssignableFrom(Double.class)) {
-						values.put(column.name(),field.getDouble(baseTable));
-						continue;
-					}
+                // set String
+                if(field.getType().isAssignableFrom(String.class)) {
+                    values.put(column.name(),(String)field.get(baseTable));
+                    continue;
+                }
 
-					// set Float
-					if(field.getType().isAssignableFrom(Float.class)) {
-						values.put(column.name(),field.getFloat(baseTable));
-						continue;
-					}
+                // set Double
+                if(field.getType().isAssignableFrom(Double.class)) {
+                    values.put(column.name(),field.getDouble(baseTable));
+                    continue;
+                }
 
-					logError("can't set column '"+ column.name() +"' for field '"+field.getName()+"' with field type type '"+field.getType()+"'");
-				}
-			}catch (Exception e){
-				logError(e.getMessage());
-				return 0;
-			}
-			return sqLite.insert(tabelInfo.name(), null, values);
-		}
-		return 0;
+                // set Float
+                if(field.getType().isAssignableFrom(Float.class)) {
+                    values.put(column.name(),field.getFloat(baseTable));
+                    continue;
+                }
+
+                Log.e(TAG,"can't set column '"+ column.name() +"' for field '"+field.getName()+"' with field type type '"+field.getType()+"'");
+            }
+        }catch (Exception e){
+            Log.e(TAG,e.getMessage());
+            return 0;
+        }
+        return sqLite.insert(tabelInfo.name(), null, values);
+
 	}
 
 	/**
@@ -196,18 +195,18 @@ public class DBHandler extends SQLiteOpenHelper {
 								continue;
 							}
 
-							logError("can't get column '"+ column.name() +"' for field '"+field.getName()+"' with field type '"+field.getType()+"'");
+                            Log.e(TAG,"can't get column '"+ column.name() +"' for field '"+field.getName()+"' with field type '"+field.getType()+"'");
 						}
 						entities.add(entity);
 
 					}catch(Exception e){
-						logError(e.getMessage());
+                        Log.e(TAG,e.getMessage());
 					}
 
 				}
 			};
 		}catch(Exception e){
-			logError(e.getMessage());
+            Log.e(TAG,e.getMessage());
 		}
 
 		return entities;

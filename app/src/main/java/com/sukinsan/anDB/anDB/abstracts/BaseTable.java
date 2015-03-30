@@ -10,7 +10,13 @@ import com.sukinsan.anDB.anDB.annotations.Index;
  */
 public abstract class BaseTable{
 
-	@Column(name= DBHandler.TABLE_ID,type="INTEGER", AUTOINCREMENT = true, PRIMARY_KEY = true)
+	@Column(
+        name= DBHandler.TABLE_ID,
+        type="INTEGER",
+        AUTOINCREMENT = true,
+        PRIMARY_KEY = true,
+        index = @Index(name="index_id",sortBy = "DESC", unique = true)
+    )
 	protected int id;
 
 	public int getId() {

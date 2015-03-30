@@ -14,5 +14,4 @@ import java.util.List;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Table {
 	String name();
-	Index[] indexes();
 }

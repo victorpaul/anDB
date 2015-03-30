@@ -30,20 +30,23 @@ public class Main extends Activity {
 
 		User user = new User();
 
+
 		DBHandler dbHandler = new DBHandler(getApplicationContext());
 
-		dbHandler.drop(user);
-
+		//dbHandler.drop(user);
 		dbHandler.create(User.class);
 
+        user.email = "ukropia";
 		dbHandler.insert(user);
+        user.email = "ukrop";
 		dbHandler.insert(user);
-		dbHandler.insert(user);
+        user.email = "buhaha";
 		dbHandler.insert(user);
 
 		List<User> users = dbHandler.select("SELECT * FROM user",User.class);
-		Log.i("ALL USERS","users:"+users);
+        Log.i("ALL USERS","users:"+users);
 
+/*
 		dbHandler.delete(users.get(1));
 
 		List<User> nextUsers = dbHandler.select("SELECT * FROM user",User.class);

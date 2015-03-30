@@ -20,14 +20,13 @@ import java.util.List;
  */
 public class TableManager {
 
-	private final static String TAG = "TableManager";
+	private final static String TAG = TableManager.class.getSimpleName();
 
-	Table tableInfo;
-	List<Field> fields;
-	SQLiteDatabase sqLite;
-	QueryManager qm;
-	List<SchemaColumn> schemaColumns;
-	List<SchemaIndex> schemaindexes;
+	private Table tableInfo;
+    private List<Field> fields;
+    private SQLiteDatabase sqLite;
+    private QueryManager qm;
+    private List<SchemaColumn> schemaColumns;
 
 	public TableManager(Table tableInfo, List<Field> fields,SQLiteDatabase sqLite){
 
@@ -36,7 +35,6 @@ public class TableManager {
 		this.fields = fields;
 		this.sqLite = sqLite;
 		this.schemaColumns = getSchemaColumns();
-		this.schemaindexes = getSchemaIndexes();
 
 		if(this.schemaColumns.size() == 0){
 			createTable();
@@ -46,23 +44,9 @@ public class TableManager {
 
 	}
 
-	private List<SchemaIndex> getSchemaIndexes(){
-		final List<SchemaIndex> schemaIndexes_ = new ArrayList<SchemaIndex>();
-		try {
-			new QueryResultReader("SHOW INDEX FROM `"+tableInfo.name()+"`;",sqLite) {
-				@Override
-				public void loopThroughResults(Cursor cursor) {
-					SchemaIndex schemaIndex = new SchemaIndex();
-					schemaIndexes_.add(schemaIndex);
-				}
-			};
-		}catch(Exception e){
-			Log.e(TAG, e.getMessage());
-		}
-		return schemaIndexes_;
-	}
-
 	private List<SchemaColumn> getSchemaColumns(){
+        Log.i(TAG,"getSchemaColumns()");
+
 		final List<SchemaColumn> schemaColumns_ = new ArrayList<SchemaColumn>();
 		try {
 			new QueryResultReader("PRAGMA table_info("+tableInfo.name()+");",sqLite) {
@@ -90,19 +74,22 @@ public class TableManager {
 		if(fields.size() != schemaColumns.size() || !isSchemaUpToDate()){
 			String columnsForMigration = getColumnsForMigration();
 
-			String tempTableName = "temporaryTableName"+tableInfo.name();
+			String tempTableName = "temporaryTableName_"+tableInfo.name();
 
 			qm.executeQuery("ALTER TABLE `" + tableInfo.name() + "` RENAME TO `" + tempTableName + "`;");
-			createTable();
-			qm.executeQuery("INSERT INTO `" + tableInfo.name() + "` (" + columnsForMigration + ") SELECT " + columnsForMigration + " FROM `" + tempTableName + "`;");
-			qm.executeQuery("DROP TABLE `" + tempTableName + "`;");
-
+			if(createTable()) {
+                qm.executeQuery("INSERT INTO `" + tableInfo.name() + "` (" + columnsForMigration + ") SELECT " + columnsForMigration + " FROM `" + tempTableName + "`;");
+                qm.executeQuery("DROP TABLE `" + tempTableName + "`;");
+            }else{
+                qm.executeQuery("ALTER TABLE `" + tempTableName + "` RENAME TO `" + tableInfo.name() + "`;");
+            }
 		}else{
 			Log.i(TAG,"Table '" + tableInfo.name() + "' no needs to be updated");
 		}
 	}
 
 	private boolean isSchemaUpToDate(){
+        Log.i(TAG,"isSchemaUpToDate()");
 		boolean schemaIsUpToDate = true;
 		int totalFieldsMatched = 0;
 
@@ -169,30 +156,35 @@ public class TableManager {
 	 * create a table
 	 */
 	private boolean createTable(){
-		StringBuilder queryCreateTable = new StringBuilder("CREATE TABLE "+tableInfo.name()+"(");
+		StringBuilder queryCreateTable = new StringBuilder("CREATE TABLE `"+tableInfo.name()+"`(");
+        StringBuilder queryCreateIndexes = new StringBuilder("");
 
 		for(Field field : fields){
 			Column column = field.getAnnotation(Column.class);
-			queryCreateTable.append(column.name()+" "+column.type());
+			queryCreateTable.append("`"+column.name()+"` "+column.type());
 
 			if(column.PRIMARY_KEY()){queryCreateTable.append(" PRIMARY KEY ON CONFLICT REPLACE");}
 			if(column.AUTOINCREMENT()){queryCreateTable.append(" AUTOINCREMENT");}
 
 			queryCreateTable.append(",");
+            queryCreateIndexes.append(getIndexSQL(tableInfo,column));
 		}
 		queryCreateTable.deleteCharAt(queryCreateTable.length()-1);// remove last comma
 		queryCreateTable.append(");");
+        queryCreateTable.append(queryCreateIndexes.toString());
 
-		if(!qm.executeQuery(queryCreateTable.toString())){
-			return false;
+		if(qm.executeQuery(queryCreateTable.toString())){
+            return true;
 		}
 
-		for(Index index:tableInfo.indexes()){
-			if(!qm.executeQuery("CREATE " + (index.unique() ? "UNIQUE" : "") + " INDEX `" + index.name() + "` ON `" + tableInfo.name() + "` ( " + index.column() + " " + index.sortBy() + ");")){
-				return false;
-			}
-		}
-
-		return true;
+        qm.executeQuery("DROP TABLE IF EXISTS `" + tableInfo.name() + "`;");
+		return false;
 	}
+
+    public String getIndexSQL(Table table,Column column){
+        if(!column.index().name().isEmpty()) {
+            return "CREATE " + (column.index().unique() ? "UNIQUE" : "") + " INDEX `" + column.index().name() + "` ON `" + table.name() + "` ( `" + column.name() + "` " + column.index().sortBy() + ");";
+        }
+        return "";
+    }
 }

@@ -7,7 +7,7 @@ import android.util.Log;
  * Created by viktor_2 on 7/3/14.
  */
 public class QueryManager {
-	private final static String TAG = "QueryManager";
+	private final static String TAG = QueryManager.class.getSimpleName();
 
 	SQLiteDatabase sqLite;
 

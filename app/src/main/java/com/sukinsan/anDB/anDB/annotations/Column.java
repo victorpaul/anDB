@@ -11,6 +11,7 @@ import java.lang.annotation.Target;
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Column {
+    Index index() default @Index(name="");
 	String name();
 	String type(); // TEXT,INTEGER,REAL,BLOB,INT,CHAR(50)
 	boolean PRIMARY_KEY() default false; //true,false
