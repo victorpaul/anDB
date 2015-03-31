@@ -1,6 +1,7 @@
 package com.sukinsan.anDB.anDB.abstracts;
 
 import com.sukinsan.anDB.anDB.DBHandler;
+import com.sukinsan.anDB.anDB.QueryManager;
 import com.sukinsan.anDB.anDB.annotations.Column;
 import com.sukinsan.anDB.anDB.annotations.Index;
 
@@ -8,10 +9,10 @@ import com.sukinsan.anDB.anDB.annotations.Index;
 /**
  * Created by victorPAul on 6/25/14.
  */
-public abstract class BaseTable{
+public abstract class BaseEntity {
 
 	@Column(
-        name= DBHandler.TABLE_ID,
+        name= QueryManager.MAIN_ID,
         type="INTEGER",
         AUTOINCREMENT = true,
         PRIMARY_KEY = true,
@@ -27,5 +28,5 @@ public abstract class BaseTable{
 		this.id = id;
 	}
 
-	abstract public void beforeDelete(BaseTable baseTable);
+	abstract public void beforeDelete(BaseEntity baseEntity);
 }

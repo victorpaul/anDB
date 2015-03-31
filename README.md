@@ -13,7 +13,7 @@ public class User extends BaseTable{
 
   private String name;
 
-  @Column(name="email", type="CHAR(254)")
+  @Column(name="text1", type="TEXT", index=@Index(name="index_text1",unique = false))
 
   private String email;
 

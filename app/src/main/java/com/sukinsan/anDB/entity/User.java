@@ -2,17 +2,15 @@ package com.sukinsan.anDB.entity;
 
 import android.util.Log;
 
-import com.sukinsan.anDB.anDB.abstracts.BaseTable;
+import com.sukinsan.anDB.anDB.abstracts.BaseEntity;
 import com.sukinsan.anDB.anDB.annotations.*;
-
-import java.lang.reflect.Field;
 
 /**
  * Created by victorPaul on 6/19/14.
  */
 
 @Table(name="user")
-public class User extends BaseTable{
+public class User extends BaseEntity {
 
 	@Column(name="name", type="TEXT")
     public String name;
@@ -37,7 +35,8 @@ public class User extends BaseTable{
 	@Override
 	public String toString() {
 		return "User{" +
-				"name='" + name + '\'' +
+                "  id='" + id + '\'' +
+				"  name='" + name + '\'' +
 				", email='" + email + '\'' +
 				", password='" + password + '\'' +
 				", fieldInt=" + fieldInt +
@@ -46,7 +45,7 @@ public class User extends BaseTable{
 	}
 
 	@Override
-	public void beforeDelete(BaseTable baseTable) {
+	public void beforeDelete(BaseEntity baseEntity) {
 
 	}
 }

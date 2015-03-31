@@ -28,25 +28,24 @@ public class Main extends Activity {
             getFragmentManager().beginTransaction().add(R.id.container, new PlaceholderFragment()).commit();
         }
 
-		User user = new User();
-
 
 		DBHandler dbHandler = new DBHandler(getApplicationContext());
 
-		//dbHandler.drop(user);
-		dbHandler.create(User.class);
+		dbHandler.getQM().drop(User.class);
+		dbHandler.getQM().create(User.class);
 
+        /*
+        User user = new User();
         user.email = "ukropia";
-		dbHandler.insert(user);
+		dbHandler.save(user);
         user.email = "ukrop";
-		dbHandler.insert(user);
+		dbHandler.save(user);
         user.email = "buhaha";
-		dbHandler.insert(user);
+		dbHandler.save(user);
 
 		List<User> users = dbHandler.select("SELECT * FROM user",User.class);
         Log.i("ALL USERS","users:"+users);
 
-/*
 		dbHandler.delete(users.get(1));
 
 		List<User> nextUsers = dbHandler.select("SELECT * FROM user",User.class);
@@ -54,7 +53,6 @@ public class Main extends Activity {
 
 		dbHandler.delete(users.get(1));
 
-		//dbHandler.dropTable(user);
 		//*/
     }
 
