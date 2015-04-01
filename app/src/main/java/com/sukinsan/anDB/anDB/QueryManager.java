@@ -103,12 +103,17 @@ public class QueryManager {
     @Deprecated
     public <T> List<Map<Class<T>,T>> querySelectMultipleFrom(String query, final Class<? extends BaseEntity>... tables){
         List<Map<Class<T>,T>> entities = new ArrayList<Map<Class<T>,T>>();
-        /*
+
         resultReader(generateSelect(query,tables), new QueryManager.QueryReader() {
             @Override
             public void loop(Cursor cursor) throws Exception {
-                T entity = (T)schemaManager.createEntityFromCursor(cursor,tables[0]);
-                entities.add(entity);
+
+                //T entity = (T)schemaManager.createEntityFromCursor(cursor,tables[0]);
+                //entities.add(entity);
+
+                for(int i=0; i<cursor.getColumnCount();i++){
+                    Log.i(TAG,cursor.getColumnName(i) + " = " + cursor.getString(i));
+                }
             }
         });//*/
         return entities;

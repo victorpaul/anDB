@@ -14,6 +14,7 @@ import java.util.List;
 import com.sukinsan.anDB.anDB.abstracts.BaseEntity;
 import com.sukinsan.anDB.anDB.annotations.Column;
 import com.sukinsan.anDB.anDB.annotations.Table;
+import com.sukinsan.anDB.entity.Shop;
 import com.sukinsan.anDB.entity.User;
 
 /**
@@ -45,8 +46,7 @@ public class DBHandler extends SQLiteOpenHelper {
 
 	@Override
 	public void onCreate(SQLiteDatabase db) {
-        getQM(db).drop(User.class);
-        getQM().create(User.class);
+
 	}
 
 	@Override

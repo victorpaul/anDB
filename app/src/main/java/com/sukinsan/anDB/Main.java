@@ -13,6 +13,7 @@ import android.view.ViewGroup;
 import java.util.List;
 
 import com.sukinsan.anDB.anDB.DBHandler;
+import com.sukinsan.anDB.entity.Shop;
 import com.sukinsan.anDB.entity.User;
 
 
@@ -29,6 +30,16 @@ public class Main extends Activity {
 
 		DBHandler dbHandler = new DBHandler(getApplicationContext());
 
+        dbHandler.getQM().drop(User.class);
+        dbHandler.getQM().create(User.class);
+
+        dbHandler.getQM().drop(Shop.class);
+        dbHandler.getQM().create(Shop.class);
+
+        Shop shop = new Shop();
+        shop.name = "silpo";
+        dbHandler.getQM().insert(shop);
+
         User user = new User();
         user.email = "ukropia";
         user.fieldInt = 2;
@@ -36,6 +47,11 @@ public class Main extends Activity {
         user.name = "name";
         user.password = "asdasd";
 		dbHandler.getQM().insert(user);
+
+
+        dbHandler.getQM().querySelectMultipleFrom("WHERE `user`.`id` = `shop`.`id`",User.class,Shop.class);
+
+/*
         user.email = "ukrop";
 		dbHandler.getQM().insert(user);
         user.email = "buhaha";
@@ -50,6 +66,7 @@ public class Main extends Activity {
 		Log.i("ALL USERS","users after we deleted on:"+nextUsers);
 
 		dbHandler.getQM().delete(users.get(1));
+        //*/
     }
 
     @Override

@@ -21,7 +21,7 @@ public class User extends BaseEntity {
 	@Column(name="text2", type="TEXT")
     public String password;
 
-	@Column(name="integer", type="INT")
+	@Column(name="integer", type="INTEGER")
     public int fieldInt;
 
 	@Column(name="real", type="REAL")

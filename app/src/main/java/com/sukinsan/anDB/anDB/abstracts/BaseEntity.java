@@ -24,9 +24,5 @@ public abstract class BaseEntity {
 		return id;
 	}
 
-	public void setId(int id) {
-		this.id = id;
-	}
-
 	abstract public void beforeDelete(BaseEntity baseEntity);
 }
