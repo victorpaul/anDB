@@ -12,7 +12,9 @@ import com.sukinsan.anDB.anDB.schema.SchemaColumn;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by victorPaul on 6/27/14.
@@ -69,7 +71,7 @@ public class QueryManager {
             return 0;
         }
         Table table = schemaManager.getTable(baseEntity.getClass());
-        return sqLite.insertWithOnConflict(table.name(), null, values,SQLiteDatabase.CONFLICT_REPLACE);
+        return sqLite.insertWithOnConflict(table.name(), null, values, SQLiteDatabase.CONFLICT_REPLACE);
     }
 
     public <T> String generateSelect(String where, Class<? extends BaseEntity>... entities){
@@ -80,22 +82,35 @@ public class QueryManager {
             SELECT.append(sw(table.name()) + ".*,");
             FROM.append(sw(table.name())+",");
         }
-
         SELECT.deleteCharAt(SELECT.length()-1);// remove last comma
         FROM.deleteCharAt(FROM.length()-1);// remove last comma
-
         return SELECT.toString() + " " + FROM.toString() + " " + where;
     }
 
-    public <T> List<T> querySelectFrom(String query, final Class<? extends BaseEntity>... tables){
+    public <T> List<T> querySelectFrom(String query, final Class<? extends BaseEntity> table){
         final ArrayList<T> entities = new ArrayList<T>();
+        resultReader(generateSelect(query, table), new QueryManager.QueryReader() {
+            @Override
+            public void loop(Cursor cursor) throws Exception {
+                T entity = (T) schemaManager.createEntityFromCursor(cursor, table);
+                entities.add(entity);
+            }
+        });
+        return entities;
+    }
+
+    // not finished yet
+    @Deprecated
+    public <T> List<Map<Class<T>,T>> querySelectMultipleFrom(String query, final Class<? extends BaseEntity>... tables){
+        List<Map<Class<T>,T>> entities = new ArrayList<Map<Class<T>,T>>();
+        /*
         resultReader(generateSelect(query,tables), new QueryManager.QueryReader() {
             @Override
             public void loop(Cursor cursor) throws Exception {
                 T entity = (T)schemaManager.createEntityFromCursor(cursor,tables[0]);
                 entities.add(entity);
             }
-        });
+        });//*/
         return entities;
     }
 
