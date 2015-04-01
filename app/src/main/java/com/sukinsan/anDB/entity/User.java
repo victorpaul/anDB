@@ -25,7 +25,7 @@ public class User extends BaseEntity {
     public int fieldInt;
 
 	@Column(name="real", type="REAL")
-    public int fieldReal2;
+    public double fieldReal2;
 
 	public User() {
 		super();

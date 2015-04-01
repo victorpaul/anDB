@@ -19,7 +19,6 @@ import java.util.List;
  */
 public class QueryManager {
     public final static String MAIN_ID = "id";
-
     public interface QueryReader{
         public void loop(Cursor cursor) throws Exception;
     }
@@ -65,94 +64,38 @@ public class QueryManager {
      * @return
      */
     public long insert(BaseEntity baseEntity){
+        ContentValues values = schemaManager.getInsertValues(baseEntity);
+        if(values == null){
+            return 0;
+        }
         Table table = schemaManager.getTable(baseEntity.getClass());
-        if(table == null){
-            return 0;
-        }
-
-        ContentValues values = new ContentValues();
-        try {
-            for (Field field : schemaManager.getFields(baseEntity.getClass())){
-                field.setAccessible(true);
-                Column column = field.getAnnotation(Column.class);
-
-                // set int
-                if(field.getType().isAssignableFrom(Integer.TYPE)) {
-                    if(!column.AUTOINCREMENT()) {
-                        values.put(column.name(), field.getInt(baseEntity));
-                    }
-                    continue;
-                }
-
-                // set String
-                if(field.getType().isAssignableFrom(String.class)) {
-                    values.put(column.name(),(String)field.get(baseEntity));
-                    continue;
-                }
-
-                // set Double
-                if(field.getType().isAssignableFrom(Double.class)) {
-                    values.put(column.name(),field.getDouble(baseEntity));
-                    continue;
-                }
-
-                // set Float
-                if(field.getType().isAssignableFrom(Float.class)) {
-                    values.put(column.name(),field.getFloat(baseEntity));
-                    continue;
-                }
-
-                Log.e(TAG,"can't set column '"+ column.name() +"' for field '"+field.getName()+"' with field type type '"+field.getType()+"'");
-            }
-        }catch (Exception e){
-            Log.e(TAG,e.getMessage());
-            return 0;
-        }
-        return sqLite.insert(table.name(), null, values);
+        return sqLite.insertWithOnConflict(table.name(), null, values,SQLiteDatabase.CONFLICT_REPLACE);
     }
 
-    public <T> List<T> select(String query, final Class<T> userTable){
-        final List<Field> fields = schemaManager.getFields(userTable);
-        final ArrayList<T> entities = new ArrayList<T>();
+    public <T> String generateSelect(String where, Class<? extends BaseEntity>... entities){
+        StringBuilder SELECT = new StringBuilder("SELECT ");
+        StringBuilder FROM = new StringBuilder("FROM ");
+        for(Class<? extends BaseEntity> entity : entities){
+            Table table = schemaManager.getTable(entity);
+            SELECT.append(sw(table.name()) + ".*,");
+            FROM.append(sw(table.name())+",");
+        }
 
-        resultReader(query, new QueryManager.QueryReader() {
+        SELECT.deleteCharAt(SELECT.length()-1);// remove last comma
+        FROM.deleteCharAt(FROM.length()-1);// remove last comma
+
+        return SELECT.toString() + " " + FROM.toString() + " " + where;
+    }
+
+    public <T> List<T> querySelectFrom(String query, final Class<? extends BaseEntity>... tables){
+        final ArrayList<T> entities = new ArrayList<T>();
+        resultReader(generateSelect(query,tables), new QueryManager.QueryReader() {
             @Override
             public void loop(Cursor cursor) throws Exception {
-                T entity = userTable.newInstance();
-                for (Field field : fields) {
-                    field.setAccessible(true);
-                    Column column = field.getAnnotation(Column.class);
-
-                    // get int
-                    if (field.getType().isAssignableFrom(Integer.TYPE)) {
-                        field.set(entity, cursor.getInt(cursor.getColumnIndex(column.name())));
-                        continue;
-                    }
-
-                    // get String
-                    if (field.getType().isAssignableFrom(String.class)) {
-                        field.set(entity, cursor.getString(cursor.getColumnIndex(column.name())));
-                        continue;
-                    }
-
-                    // get Double
-                    if (field.getType().isAssignableFrom(Double.class)) {
-                        field.set(entity, cursor.getDouble(cursor.getColumnIndex(column.name())));
-                        continue;
-                    }
-
-                    // get Float
-                    if (field.getType().isAssignableFrom(Float.class)) {
-                        field.set(entity, cursor.getFloat(cursor.getColumnIndex(column.name())));
-                        continue;
-                    }
-
-                    Log.e(TAG, "can't get column '" + column.name() + "' for field '" + field.getName() + "' with field type '" + field.getType() + "'");
-                }
+                T entity = (T)schemaManager.createEntityFromCursor(cursor,tables[0]);
                 entities.add(entity);
             }
         });
-
         return entities;
     }
 
@@ -185,6 +128,12 @@ public class QueryManager {
 		}
 	}
 
+    /**
+     * To create a table in sqlite DB
+     * @param table information about the table
+     * @param fields information about fields
+     * @return
+     */
 	private boolean createTable(Table table,List<Field> fields){
 		StringBuilder queryCreateTable = new StringBuilder("CREATE TABLE " + sw(table.name()) + "(");
         StringBuilder queryCreateIndexes = new StringBuilder("");
@@ -211,7 +160,13 @@ public class QueryManager {
 		return false;
 	}
 
-    public String getIndexSQLSyntax(Table table, Column column){
+    /**
+     * generate sql query to create index
+     * @param table
+     * @param column
+     * @return
+     */
+    private String getIndexSQLSyntax(Table table, Column column){
         if(!column.index().name().isEmpty()) {
             return "CREATE " + (column.index().unique() ? "UNIQUE" : "") + " INDEX " + sw(column.index().name()) + " ON " + sw(table.name()) + " ( " + sw(column.name()) + " " + column.index().sortBy() + ");";
         }
@@ -237,7 +192,7 @@ public class QueryManager {
                     qr.loop(cursor);
                 } while (cursor.moveToNext());
             } catch (Exception e) {
-                Log.e(TAG,e.getMessage());
+                e.printStackTrace();
             }
         }
         cursor.close();

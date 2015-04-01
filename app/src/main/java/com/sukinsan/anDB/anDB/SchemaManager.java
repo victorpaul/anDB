@@ -1,8 +1,10 @@
 package com.sukinsan.anDB.anDB;
 
+import android.content.ContentValues;
 import android.database.Cursor;
 import android.util.Log;
 
+import com.sukinsan.anDB.anDB.abstracts.BaseEntity;
 import com.sukinsan.anDB.anDB.annotations.Column;
 import com.sukinsan.anDB.anDB.annotations.Table;
 import com.sukinsan.anDB.anDB.schema.SchemaColumn;
@@ -105,20 +107,85 @@ public class SchemaManager {
 
     public List<SchemaColumn> getSchemaColumns(Table table, QueryManager qm){
         Log.i(TAG,"getSchemaColumns()");
-        final List<SchemaColumn> schemaColumns_ = new ArrayList<SchemaColumn>();
+        final List<SchemaColumn> schemaColumns = new ArrayList<SchemaColumn>();
         qm.resultReader("PRAGMA table_info(" + table.name() + ");", new QueryManager.QueryReader() {
             @Override
             public void loop(Cursor cursor) {
-                SchemaColumn schemaColumn = new SchemaColumn();
-                schemaColumn.setPrimaryKey(cursor.getInt(cursor.getColumnIndex("pk")) == 1);
-                schemaColumn.setName(cursor.getString(cursor.getColumnIndex("name")));
-                schemaColumn.setType(cursor.getString(cursor.getColumnIndex("type")));
-                schemaColumn.setDfltValue(cursor.getString(cursor.getColumnIndex("dflt_value")));
-                schemaColumn.setNotNull(cursor.getInt(cursor.getColumnIndex("notnull")) == 1);
-                schemaColumns_.add(schemaColumn);
+            SchemaColumn schemaColumn = new SchemaColumn();
+            schemaColumn.setPrimaryKey(cursor.getInt(cursor.getColumnIndex("pk")) == 1);
+            schemaColumn.setName(cursor.getString(cursor.getColumnIndex("name")));
+            schemaColumn.setType(cursor.getString(cursor.getColumnIndex("type")));
+            schemaColumn.setDfltValue(cursor.getString(cursor.getColumnIndex("dflt_value")));
+            schemaColumn.setNotNull(cursor.getInt(cursor.getColumnIndex("notnull")) == 1);
+            schemaColumns.add(schemaColumn);
             }
         });
-        return schemaColumns_;
+        return schemaColumns;
+    }
+
+    public ContentValues getInsertValues(BaseEntity baseEntity){
+        ContentValues values = new ContentValues();
+        try {
+            for (Field field : getFields(baseEntity.getClass())){
+                field.setAccessible(true);
+                Column column = field.getAnnotation(Column.class);
+
+                if(field.getType().isAssignableFrom(Integer.TYPE)){
+                    int value = field.getInt(baseEntity);
+                    if(value > 0) {
+                        values.put(column.name(), value);
+                    }
+                    continue;
+                }
+                if(field.getType().isAssignableFrom(String.class)) {
+                    values.put(column.name(),(String)field.get(baseEntity));
+                    continue;
+                }
+                if(field.getType().isAssignableFrom(Double.TYPE)) {
+                    values.put(column.name(),field.getDouble(baseEntity));
+                    continue;
+                }
+                if(field.getType().isAssignableFrom(Float.TYPE)) {
+                    values.put(column.name(),field.getFloat(baseEntity));
+                    continue;
+                }
+
+                Log.e(TAG,"can't set column '"+ column.name() +"' for field '"+field.getName()+"' with field type '"+field.getType()+"'");
+            }
+        }catch (Exception e){
+            Log.e(TAG,e.getMessage());
+            return null;
+        }
+        return values;
+    }
+
+    public <T> T createEntityFromCursor(Cursor cursor,Class<T> table) throws Exception{
+        T entity = table.newInstance();
+        final List<Field> fields = getFields(table);
+        for (Field field : fields) {
+
+            field.setAccessible(true);
+            Column column = field.getAnnotation(Column.class);
+
+            if (field.getType().isAssignableFrom(Integer.TYPE)) {
+                field.set(entity, cursor.getInt(cursor.getColumnIndex(column.name())));
+                continue;
+            }
+            if (field.getType().isAssignableFrom(String.class)) {
+                field.set(entity, cursor.getString(cursor.getColumnIndex(column.name())));
+                continue;
+            }
+            if (field.getType().isAssignableFrom(Double.TYPE)) {
+                field.set(entity, cursor.getDouble(cursor.getColumnIndex(column.name())));
+                continue;
+            }
+            if (field.getType().isAssignableFrom(Float.TYPE)) {
+                field.set(entity, cursor.getFloat(cursor.getColumnIndex(column.name())));
+                continue;
+            }
+            Log.e(TAG, "can't get column '" + column.name() + "' for field '" + field.getName() + "' with field type '" + field.getType() + "'");
+        }
+        return entity;
     }
 
 }

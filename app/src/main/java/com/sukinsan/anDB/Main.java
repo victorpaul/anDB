@@ -2,7 +2,6 @@ package com.sukinsan.anDB;
 
 import android.app.Activity;
 import android.app.Fragment;
-import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -28,32 +27,29 @@ public class Main extends Activity {
             getFragmentManager().beginTransaction().add(R.id.container, new PlaceholderFragment()).commit();
         }
 
-
 		DBHandler dbHandler = new DBHandler(getApplicationContext());
 
-		dbHandler.getQM().drop(User.class);
-		dbHandler.getQM().create(User.class);
-
-        /*
         User user = new User();
         user.email = "ukropia";
-		dbHandler.save(user);
+        user.fieldInt = 2;
+        user.fieldReal2 = 3;
+        user.name = "name";
+        user.password = "asdasd";
+		dbHandler.getQM().insert(user);
         user.email = "ukrop";
-		dbHandler.save(user);
+		dbHandler.getQM().insert(user);
         user.email = "buhaha";
-		dbHandler.save(user);
+		dbHandler.getQM().insert(user);
 
-		List<User> users = dbHandler.select("SELECT * FROM user",User.class);
+		List<User> users = dbHandler.getQM().querySelectFrom("ORDER BY `id` DESC", User.class);
         Log.i("ALL USERS","users:"+users);
 
-		dbHandler.delete(users.get(1));
+		dbHandler.getQM().delete(users.get(1));
 
-		List<User> nextUsers = dbHandler.select("SELECT * FROM user",User.class);
+		List<User> nextUsers = dbHandler.getQM().querySelectFrom("", User.class);
 		Log.i("ALL USERS","users after we deleted on:"+nextUsers);
 
-		dbHandler.delete(users.get(1));
-
-		//*/
+		dbHandler.getQM().delete(users.get(1));
     }
 
     @Override
